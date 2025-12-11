@@ -152,3 +152,162 @@ def test_divide_by_zero_api(client):
     # Assert that the 'error' field contains the correct error message
     assert "Cannot divide by zero!" in response.json()['error'], \
         f"Expected error message 'Cannot divide by zero!', got '{response.json()['error']}'"
+
+
+# =============================================
+# ADDITIONAL COMPREHENSIVE INTEGRATION TESTS
+# =============================================
+
+# Test the root endpoint
+def test_root_endpoint(client):
+    """
+    Test the root endpoint returns HTML content.
+    
+    This test verifies that the GET / endpoint returns a 200 status code
+    and serves HTML template content.
+    """
+    response = client.get('/')
+    assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
+    assert 'text/html' in response.headers.get('content-type', ''), \
+        f"Expected HTML content-type, got {response.headers.get('content-type')}"
+
+
+# Test error handling with invalid input types
+def test_add_with_invalid_input(client):
+    """
+    Test the add endpoint with invalid input (non-numeric).
+    
+    This test verifies that the API properly validates input and returns
+    an appropriate error response when non-numeric values are provided.
+    """
+    response = client.post('/add', json={'a': 'not a number', 'b': 5})
+    assert response.status_code == 422, f"Expected status code 422, got {response.status_code}"
+    assert 'error' in response.json() or 'detail' in response.json(), \
+        "Response should contain error information"
+
+
+# Test error handling with missing required fields
+def test_add_with_missing_field(client):
+    """
+    Test the add endpoint with missing required field.
+    
+    This test verifies that the API properly validates that both 'a' and 'b'
+    are provided in the request.
+    """
+    response = client.post('/add', json={'a': 5})
+    assert response.status_code == 422, f"Expected status code 422, got {response.status_code}"
+
+
+def test_subtract_with_missing_field(client):
+    """Test the subtract endpoint with missing required field."""
+    response = client.post('/subtract', json={'b': 3})
+    assert response.status_code == 422, f"Expected status code 422, got {response.status_code}"
+
+
+def test_multiply_with_missing_field(client):
+    """Test the multiply endpoint with missing required field."""
+    response = client.post('/multiply', json={'a': 10})
+    assert response.status_code == 422, f"Expected status code 422, got {response.status_code}"
+
+
+def test_divide_with_missing_field(client):
+    """Test the divide endpoint with missing required field."""
+    response = client.post('/divide', json={'b': 2})
+    assert response.status_code == 422, f"Expected status code 422, got {response.status_code}"
+
+
+# Test with floating point numbers
+def test_add_with_floats(client):
+    """Test the add endpoint with floating point numbers."""
+    response = client.post('/add', json={'a': 2.5, 'b': 3.5})
+    assert response.status_code == 200
+    assert response.json()['result'] == 6.0
+
+
+def test_subtract_with_floats(client):
+    """Test the subtract endpoint with floating point numbers."""
+    response = client.post('/subtract', json={'a': 10.5, 'b': 5.2})
+    assert response.status_code == 200
+    assert abs(response.json()['result'] - 5.3) < 0.001
+
+
+def test_multiply_with_floats(client):
+    """Test the multiply endpoint with floating point numbers."""
+    response = client.post('/multiply', json={'a': 2.5, 'b': 4.0})
+    assert response.status_code == 200
+    assert response.json()['result'] == 10.0
+
+
+def test_divide_with_floats(client):
+    """Test the divide endpoint with floating point numbers."""
+    response = client.post('/divide', json={'a': 10.5, 'b': 2.5})
+    assert response.status_code == 200
+    assert abs(response.json()['result'] - 4.2) < 0.001
+
+
+# Test with negative numbers
+def test_add_with_negative_numbers(client):
+    """Test the add endpoint with negative numbers."""
+    response = client.post('/add', json={'a': -10, 'b': 5})
+    assert response.status_code == 200
+    assert response.json()['result'] == -5
+
+
+def test_subtract_with_negative_numbers(client):
+    """Test the subtract endpoint with negative numbers."""
+    response = client.post('/subtract', json={'a': -10, 'b': -5})
+    assert response.status_code == 200
+    assert response.json()['result'] == -5
+
+
+def test_multiply_with_negative_numbers(client):
+    """Test the multiply endpoint with negative numbers."""
+    response = client.post('/multiply', json={'a': -10, 'b': 5})
+    assert response.status_code == 200
+    assert response.json()['result'] == -50
+
+
+def test_divide_with_negative_numbers(client):
+    """Test the divide endpoint with negative numbers."""
+    response = client.post('/divide', json={'a': -10, 'b': 5})
+    assert response.status_code == 200
+    assert response.json()['result'] == -2.0
+
+
+# Test with zero
+def test_add_with_zero(client):
+    """Test the add endpoint with zero."""
+    response = client.post('/add', json={'a': 0, 'b': 0})
+    assert response.status_code == 200
+    assert response.json()['result'] == 0
+
+
+def test_multiply_with_zero(client):
+    """Test the multiply endpoint with zero."""
+    response = client.post('/multiply', json={'a': 0, 'b': 100})
+    assert response.status_code == 200
+    assert response.json()['result'] == 0
+
+
+# Test with large numbers
+def test_add_with_large_numbers(client):
+    """Test the add endpoint with large numbers."""
+    response = client.post('/add', json={'a': 1e10, 'b': 1e10})
+    assert response.status_code == 200
+    assert response.json()['result'] == 2e10
+
+
+def test_multiply_with_large_numbers(client):
+    """Test the multiply endpoint with large numbers."""
+    response = client.post('/multiply', json={'a': 1e5, 'b': 1e5})
+    assert response.status_code == 200
+    assert response.json()['result'] == 1e10
+
+
+# Test response structure
+def test_response_structure(client):
+    """Test that API responses have the correct structure."""
+    response = client.post('/add', json={'a': 5, 'b': 3})
+    data = response.json()
+    assert 'result' in data, "Response should contain 'result' field"
+    assert isinstance(data['result'], (int, float)), "Result should be numeric"

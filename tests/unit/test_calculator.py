@@ -232,3 +232,137 @@ def test_divide_by_zero() -> None:
     # Assert that the exception message contains the expected error message
     assert "Cannot divide by zero!" in str(excinfo.value), \
         f"Expected error message 'Cannot divide by zero!', but got '{excinfo.value}'"
+
+
+# ---------------------------------------------
+# Extended Unit Tests: Edge Cases and Coverage
+# ---------------------------------------------
+
+class TestAddEdgeCases:
+    """Test edge cases and special scenarios for the add function."""
+    
+    @pytest.mark.parametrize(
+        "a, b, expected",
+        [
+            (1e10, 1e10, 2e10),  # Test with very large numbers
+            (1e-10, 1e-10, 2e-10),  # Test with very small numbers
+            (-0, 0, 0),  # Test with negative zero
+        ],
+        ids=[
+            "add_very_large_numbers",
+            "add_very_small_numbers",
+            "add_negative_zero",
+        ]
+    )
+    def test_add_edge_cases(self, a: Number, b: Number, expected: Number) -> None:
+        """Test the add function with edge cases."""
+        result = add(a, b)
+        assert result == expected
+
+
+class TestSubtractEdgeCases:
+    """Test edge cases and special scenarios for the subtract function."""
+    
+    @pytest.mark.parametrize(
+        "a, b, expected",
+        [
+            (1e10, 1e10, 0),  # Test subtracting equal very large numbers
+            (5, -5, 10),  # Test subtracting negative number
+            (0, -1, 1),  # Test subtracting negative from zero
+        ],
+        ids=[
+            "subtract_equal_large_numbers",
+            "subtract_negative_number",
+            "subtract_negative_from_zero",
+        ]
+    )
+    def test_subtract_edge_cases(self, a: Number, b: Number, expected: Number) -> None:
+        """Test the subtract function with edge cases."""
+        result = subtract(a, b)
+        assert result == expected
+
+
+class TestMultiplyEdgeCases:
+    """Test edge cases and special scenarios for the multiply function."""
+    
+    @pytest.mark.parametrize(
+        "a, b, expected",
+        [
+            (2, 3.5, 7.0),  # Test mixed int and float
+            (1e5, 1e5, 1e10),  # Test multiplying large numbers
+            (-1, -1, 1),  # Test multiplying negative numbers
+            (0.5, 0.5, 0.25),  # Test multiplying decimals
+        ],
+        ids=[
+            "multiply_mixed_types",
+            "multiply_large_numbers",
+            "multiply_negative_numbers",
+            "multiply_decimals",
+        ]
+    )
+    def test_multiply_edge_cases(self, a: Number, b: Number, expected: Number) -> None:
+        """Test the multiply function with edge cases."""
+        result = multiply(a, b)
+        assert result == expected
+
+
+class TestDivideEdgeCases:
+    """Test edge cases and special scenarios for the divide function."""
+    
+    def test_divide_zero_by_zero(self) -> None:
+        """Test dividing zero by zero."""
+        with pytest.raises(ValueError):
+            divide(0, 0)
+    
+    def test_divide_by_negative_zero(self) -> None:
+        """Test dividing by negative zero."""
+        with pytest.raises(ValueError):
+            divide(5, -0.0)
+    
+    @pytest.mark.parametrize(
+        "a, b, expected",
+        [
+            (1e-10, 1e10, 1e-20),  # Test very small divided by very large
+            (100, 3, 33.333333333),  # Test rounding
+            (7, 2, 3.5),  # Test integer division returning float
+        ],
+        ids=[
+            "divide_small_by_large",
+            "divide_with_rounding",
+            "divide_returning_float",
+        ]
+    )
+    def test_divide_edge_cases(self, a: Number, b: Number, expected: Number) -> None:
+        """Test the divide function with edge cases."""
+        result = divide(a, b)
+        # Use approximate equality for floating point comparisons
+        assert abs(result - expected) < 1e-9 or result == expected
+
+
+# ---------------------------------------------
+# Integration Tests: Function Combinations
+# ---------------------------------------------
+
+class TestOperationCombinations:
+    """Test combinations of operations to verify they work together correctly."""
+    
+    def test_add_then_subtract(self) -> None:
+        """Test adding then subtracting."""
+        result1 = add(10, 5)
+        result2 = subtract(result1, 3)
+        assert result2 == 12
+    
+    def test_multiply_then_divide(self) -> None:
+        """Test multiplying then dividing."""
+        result1 = multiply(10, 4)
+        result2 = divide(result1, 2)
+        assert result2 == 20.0
+    
+    def test_complex_operation_chain(self) -> None:
+        """Test a complex chain of operations."""
+        # (10 + 5) * 2 - 10 / 5 = 15 * 2 - 2 = 30 - 2 = 28
+        step1 = add(10, 5)
+        step2 = multiply(step1, 2)
+        step3 = divide(10, 5)
+        result = subtract(step2, step3)
+        assert result == 28.0
